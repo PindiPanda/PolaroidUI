@@ -63,7 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
         currentPage = controller.page;
       });
     });
-    return CustomScrollView(
+    return Container(
+      color: Colors.deepPurple,
+      child: CustomScrollView(
       slivers: [
         SliverAppBar(
           /*title: Text(
@@ -122,56 +124,64 @@ class _MyHomePageState extends State<MyHomePage> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              //Color c1 = getRandomColor();
-              //Color c2 = getRandomColor();
-              //if (index > 3) return null;
-              return Container(
-                /*decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(-.65,0),
-                    radius: 1.25,
-                    colors: index % 2 == 0 ? [c2, c1] : [c1, c2],
-                  ),
-                ),*/
+              final row = MaterialButton(
                 color: Colors.deepPurple,
-                height: 150.0,
-                child: Row(children: [
-                  Spacer(flex: 1),
-                  SizedBox(
-                    width: 100.0,
-                    child: AspectRatio(
-                      aspectRatio: 1,
+                splashColor: Colors.deepOrange,
+                highlightColor: Colors.deepOrange,
+                //animationDuration: Duration(seconds: 10),
+                onPressed: () {},
+                elevation: 0.0,
+                padding: EdgeInsets.all(0.0),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 15.0),
                       child: CircleAvatar(
+                        radius: 36,
                         backgroundImage: AssetImage('assets/image_03.jpg'),
                       ),
                     ),
-                  ),
-                  Spacer(flex: 1),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Bob The Hedgehog',
-                        style: TextStyle(
-                          inherit: false,
-                          fontFamily: 'Nothing You Could Do',
-                          fontSize: 27.0,
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 10.0, horizontal: 15.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Bob The Hedgehog',
+                              style: TextStyle(
+                                inherit: false,
+                                fontFamily: 'Nothing You Could Do',
+                                fontSize: 27.0,
+                              ),
+                              maxLines: 1,
+                            ),
+                            Text(
+                              'I am Mountain Bob!!!',
+                              style: TextStyle(
+                                inherit: false,
+                                fontFamily: 'Nothing You Could Do',
+                                fontSize: 18.0,
+                              ),
+                              maxLines: 1,
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(top: 15.0, right: 15.0),
+                              child: Container(
+                                height: 1.0,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        'I am Mountain Bob!!!',
-                        style: TextStyle(
-                          inherit: false,
-                          fontFamily: 'Nothing You Could Do',
-                          fontSize: 18.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Spacer(flex: 2),
-                ]),
+                    ),
+                  ],
+                ),
               );
+              return row;
             },
             childCount: 10,
           ),
@@ -195,7 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
           }),
         )
       ],
-    );
+    ),);
   }
 
   getRandomColor() {
@@ -211,6 +221,7 @@ class _MyHomePageState extends State<MyHomePage> {
     int index = random.nextInt(6);
     return colors[index];
   }
+
   getRandomImage() {
     Random random = new Random();
     int index = random.nextInt(4);
