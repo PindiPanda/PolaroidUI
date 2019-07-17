@@ -33,19 +33,19 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var currentPage = images.length - 1.0;
   ScrollController scrollController;
-  PageController cameraPageController;
+  PageController pageController;
 
   @override
   void initState() {
     super.initState();
-    cameraPageController = PageController(initialPage: 1);
+    pageController = PageController(initialPage: 1);
 
     _scrollListener() {
       if (scrollController.offset <=
               scrollController.position.minScrollExtent &&
           !scrollController.position.outOfRange) {
         setState(() {
-          cameraPageController.previousPage(
+          pageController.previousPage(
               duration: Duration(seconds: 1), curve: Curves.slowMiddle);
         });
       }
@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     scrollController?.dispose();
-    cameraPageController?.dispose();
+    pageController?.dispose();
     super.dispose();
   }
 
@@ -111,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return PageView(
-      controller: cameraPageController,
+      controller: pageController,
       scrollDirection: Axis.vertical,
       children: [
         CameraScreen(cameras),
