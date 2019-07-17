@@ -1,9 +1,16 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 
 import 'data.dart';
 
-void main() => runApp(MyApp());
+List<CameraDescription> cameras;
+
+Future<void> main() async {
+  cameras = await availableCameras();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -23,32 +30,86 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var currentPage = images.length - 1.0;
-  SliverPersistentHeader makeHeader(String headerText) {
+  ScrollController scrollController;
+  PageController cameraPageController;
+  CameraController cameraController;
+
+  @override
+  void initState() {
+    super.initState();
+    cameraPageController = PageController(initialPage: 1);
+
+    _scrollListener() {
+      if (scrollController.offset <=
+              scrollController.position.minScrollExtent &&
+          !scrollController.position.outOfRange) {
+        setState(() {
+          cameraPageController.previousPage(
+              duration: Duration(seconds: 1), curve: Curves.slowMiddle);
+        });
+      }
+    }
+
+    scrollController =
+        ScrollController(initialScrollOffset: 0.01, keepScrollOffset: true);
+    scrollController.addListener(_scrollListener);
+    
+    cameraController = CameraController(cameras[0], ResolutionPreset.medium);
+    cameraController.initialize().then((_){
+      if(!mounted){
+        return;
+      }
+      setState((){});
+    });
+  }
+
+  @override 
+  void dispose(){
+    scrollController?.dispose();
+    cameraPageController?.dispose();
+    cameraController?.dispose();
+    super.dispose();
+  }
+
+  SliverPersistentHeader photoHeader() {
+    PageController pageController =
+        PageController(initialPage: images.length - 1);
+    pageController.addListener(() {
+      setState(() {
+        currentPage = pageController.page;
+      });
+    });
     return SliverPersistentHeader(
       pinned: true,
       //floating: true,
       delegate: _SliverAppBarDelegate(
-        minHeight: 100.0,
-        maxHeight: 200.0,
+        minHeight: 250.0,
+        maxHeight: 400.0,
         child: Container(
-          //color: Colors.deepOrange,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
-              colors: [Colors.deepOrange, Colors.deepPurple],
+              colors: <Color>[
+                Colors.deepPurple,
+                Colors.deepOrange,
+              ],
             ),
           ),
-          child: Center(
-            child: Text(
-              headerText,
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Nothing You Could Do',
-                fontSize: 36.0,
-                inherit: false,
+          child: Stack(
+            children: <Widget>[
+              CardScrollWidget(currentPage),
+              Positioned.fill(
+                child: PageView.builder(
+                  itemCount: images.length,
+                  controller: pageController,
+                  reverse: true,
+                  itemBuilder: (context, index) {
+                    return Container();
+                  },
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -57,175 +118,192 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    PageController controller = PageController(initialPage: images.length - 1);
-    controller.addListener(() {
-      setState(() {
-        currentPage = controller.page;
-      });
-    });
-    return Container(
-      color: Colors.deepPurple,
-      child: CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          /*title: Text(
-            'Memories',
-            style: TextStyle(
-              color: Colors.blueGrey,
-              fontFamily: 'Nothing You Could Do',
-              fontSize: 36.0,
-              inherit: false,
+    return PageView(
+      controller: cameraPageController,
+      scrollDirection: Axis.vertical,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Colors.deepOrange, Colors.orange],
             ),
-          ),*/
-          backgroundColor: Colors.deepOrange,
-          expandedHeight: 250.0,
-          flexibleSpace: FlexibleSpaceBar(
-            title: null,
-            background: Image.asset('assets/polaroid.jpg', fit: BoxFit.cover),
           ),
-          //pinned: true,
-          //floating: true,
-          //snap: true,
-        ),
-        //makeHeader('Header Section 1'),
-        SliverList(
-          delegate: SliverChildListDelegate([
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: <Color>[
-                    Colors.deepPurple,
-                    Colors.deepOrange,
-                  ],
-                ),
-              ),
-              child: Stack(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
+            child: Container(
+              color: Colors.white,
+              child: Column(
                 children: <Widget>[
-                  CardScrollWidget(currentPage),
-                  Positioned.fill(
-                    child: PageView.builder(
-                      itemCount: images.length,
-                      controller: controller,
-                      reverse: true,
-                      itemBuilder: (context, index) {
-                        return Container();
-                      },
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                          padding: EdgeInsets.all(15.0),
+                          child: AspectRatio(
+                            aspectRatio: 1 / 4,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.yellow,
+                                border:
+                                    Border.all(color: Colors.black, width: 5.0),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: AspectRatio(
+                          aspectRatio: 1 / 2,
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 50.0,
+                                height: 50.0,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.red,
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(top: 15),
+                                child: Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.red,
+                                        Colors.orange,
+                                        Colors.yellow,
+                                        Colors.green,
+                                        Colors.blue,
+                                        Colors.purple
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Padding(
+                          padding: EdgeInsets.all(15.0),
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey,
+                                border: Border.all(
+                                    color: Colors.black, width: 25.0),
+                              ),
+                              child: cameraController.value.isInitialized? CameraPreview(cameraController) : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Container(
+                      height: 25,
+                      width: 500,
+                      decoration: BoxDecoration(
+                          color: Colors.grey,
+                          border: Border.all(color: Colors.black, width: 5.0)),
+                      child: Center(
+                        child: Container(color: Colors.black, height: 1.0),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ]),
-        ),
-
-        //makeHeader('Header Section 2'),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              final row = MaterialButton(
-                color: Colors.deepPurple,
-                splashColor: Colors.deepOrange,
-                highlightColor: Colors.deepOrange,
-                //animationDuration: Duration(seconds: 10),
-                onPressed: () {},
-                elevation: 0.0,
-                padding: EdgeInsets.all(0.0),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: 15.0),
-                      child: CircleAvatar(
-                        radius: 36,
-                        backgroundImage: AssetImage('assets/image_03.jpg'),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 10.0, horizontal: 15.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Bob The Hedgehog',
-                              style: TextStyle(
-                                inherit: false,
-                                fontFamily: 'Nothing You Could Do',
-                                fontSize: 27.0,
-                              ),
-                              maxLines: 1,
-                            ),
-                            Text(
-                              'I am Mountain Bob!!!',
-                              style: TextStyle(
-                                inherit: false,
-                                fontFamily: 'Nothing You Could Do',
-                                fontSize: 18.0,
-                              ),
-                              maxLines: 1,
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(top: 15.0, right: 15.0),
-                              child: Container(
-                                height: 1.0,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              return row;
-            },
-            childCount: 10,
           ),
         ),
-        makeHeader("Today's Memories"),
-        SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-          ),
-          delegate:
-              SliverChildBuilderDelegate((BuildContext context, int index) {
-            return Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(getRandomImage()),
-                  fit: BoxFit.cover,
+        Container(
+          color: Colors.deepPurple,
+          child: CustomScrollView(
+            controller: scrollController,
+            slivers: [
+              photoHeader(),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    final row = MaterialButton(
+                      color: Colors.deepPurple,
+                      splashColor: Colors.deepOrange,
+                      highlightColor: Colors.deepOrange,
+                      onPressed: () {},
+                      elevation: 0.0,
+                      padding: EdgeInsets.all(0.0),
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 15.0),
+                            child: CircleAvatar(
+                              radius: 36,
+                              backgroundImage:
+                                  AssetImage('assets/image_03.jpg'),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 15.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Bob The Hedgehog',
+                                    style: TextStyle(
+                                      inherit: false,
+                                      fontFamily: 'Nothing You Could Do',
+                                      fontSize: 27.0,
+                                    ),
+                                    maxLines: 1,
+                                  ),
+                                  Text(
+                                    'I am Mountain Bob!!!',
+                                    style: TextStyle(
+                                      inherit: false,
+                                      fontFamily: 'Nothing You Could Do',
+                                      fontSize: 18.0,
+                                    ),
+                                    maxLines: 1,
+                                  ),
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.only(top: 15.0, right: 15.0),
+                                    child: Container(
+                                      height: 1.0,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                    return row;
+                  },
+                  childCount: 10,
                 ),
               ),
-              height: 150.0,
-            );
-          }),
-        )
+            ],
+          ),
+        ),
       ],
-    ),);
-  }
-
-  getRandomColor() {
-    List colors = [
-      Colors.red,
-      Colors.orange,
-      Colors.yellow,
-      Colors.green,
-      Colors.blue,
-      Colors.purple
-    ];
-    Random random = new Random();
-    int index = random.nextInt(6);
-    return colors[index];
-  }
-
-  getRandomImage() {
-    Random random = new Random();
-    int index = random.nextInt(4);
-    return images[index];
+    );
   }
 }
 
@@ -260,54 +338,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     return maxHeight != oldDelegate.maxHeight ||
         minHeight != oldDelegate.minHeight ||
         child != oldDelegate.child;
-  }
-}
-
-class _MyHomePageState2 extends State<MyHomePage> {
-  var currentPage = images.length - 1.0;
-
-  @override
-  Widget build(BuildContext context) {
-    PageController controller = PageController(initialPage: images.length - 1);
-    controller.addListener(() {
-      setState(() {
-        currentPage = controller.page;
-      });
-    });
-    return (Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.deepPurple, Colors.deepOrange],
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          tileMode: TileMode.clamp,
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: ListView(
-          children: <Widget>[
-            SizedBox(height: 115),
-            Stack(
-              children: <Widget>[
-                CardScrollWidget(currentPage),
-                Positioned.fill(
-                  child: PageView.builder(
-                    itemCount: images.length,
-                    controller: controller,
-                    reverse: true,
-                    itemBuilder: (context, index) {
-                      return Container();
-                    },
-                  ),
-                ),
-              ],
-            ),
-            //SizedBox(height: 500,),
-          ],
-        ),
-      ),
-    ));
   }
 }
 
@@ -376,8 +406,8 @@ class CardScrollWidget extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   child: Container(
                     padding: EdgeInsets.all(5),
-                    width: widthOfPrimaryCard - 20,
-                    height: 75.0,
+                    width: widthOfPrimaryCard,
+                    height: heightOfPrimaryCard / 5,
                     color: Colors.white,
                     child: Text(
                       title[i],
