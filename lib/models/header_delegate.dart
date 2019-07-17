@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+import 'mock_camera.dart';
+
 class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final double minHeight;
   final double maxHeight;
@@ -24,7 +26,34 @@ class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return SizedBox.expand(child: child);
+    if (true) {
+      print(shrinkOffset);
+      return SizedBox.expand(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Colors.deepPurple, Colors.deepOrange],
+            ),
+          ),
+          child: Stack(
+            children: [
+              SizedBox.expand(child: child),
+              Positioned(
+                child: Padding(
+                  padding: EdgeInsets.all(15.0),
+                  child: Container(
+                    height: 475 - shrinkOffset * 1.583,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   @override

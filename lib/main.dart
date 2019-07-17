@@ -9,6 +9,7 @@ import 'models/header_delegate.dart';
 import 'models/friends_list.dart';
 import 'screens/camera_screen.dart';
 
+
 List<CameraDescription> cameras;
 
 Future<Null> main() async {
@@ -75,8 +76,8 @@ class _MyHomePageState extends State<MyHomePage> {
       pinned: true,
       //floating: true,
       delegate: SliverAppBarDelegate(
-        minHeight: 250.0,
-        maxHeight: 400.0,
+        minHeight: 300.0,
+        maxHeight: 300.0,
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -114,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
       controller: pageController,
       scrollDirection: Axis.vertical,
       children: [
-        CameraScreen(cameras),
+        //CameraScreen(cameras),
         Container(
           color: Colors.deepPurple,
           child: CustomScrollView(
